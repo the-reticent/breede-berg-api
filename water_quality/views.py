@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import WaterQualityReading
+from .serializers import WaterQualityReadingSerializer
 
-# Create your views here.
+class WaterQualityReadingViewSet(viewsets.ModelViewSet):
+    queryset = WaterQualityReading.objects.all()
+    serializer_class = WaterQualityReadingSerializer

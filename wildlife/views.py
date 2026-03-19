@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import WildlifeSighting
+from .serializers import WildlifeSightingSerializer
 
-# Create your views here.
+class WildlifeSightingViewSet(viewsets.ModelViewSet):
+    queryset = WildlifeSighting.objects.all()
+    serializer_class = WildlifeSightingSerializer
