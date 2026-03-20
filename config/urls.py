@@ -16,11 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from sites.views import MonitoringSiteViewSet
+from water_quality.views import WaterQualityReadingViewSet
+from vegetation.views import VegetationSurveyViewSet
+from wildlife.views import WildlifeSightingViewSet
+
+router = DefaultRouter()
+router.register(r'sites', MonitoringSiteViewSet)
+router.register(r'water-quality', WaterQualityReadingViewSet)
+router.register(r'vegetation', VegetationSurveyViewSet)
+router.register(r'wildlife', WildlifeSightingViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include('sites.urls')),
-    path('api/v1/', include('water_quality.urls')),
-    path('api/v1/', include('vegetation.urls')),
-    path('api/v1/', include('wildlife.urls')),
+    path('api/v1/', include(router.urls)),
 ]
