@@ -247,4 +247,4 @@ MIT
 **Kudakwashe Mike Mapaya**
 Python Developer · Data Engineer · Environmental Tech
 
-[LinkedIn](https://linkedin.com/in/kudakwashe-mapaya-654281160) · [Email](mailto:kudamapaya@gmail.com)
+[LinkedIn](https://linkedin.com/in/kudakwashe-mike-mapaya-654281160) · [Email](mailto:kudamapaya@gmail.com)
