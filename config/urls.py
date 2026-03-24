@@ -22,6 +22,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from sites.views import MonitoringSiteViewSet
 from water_quality.views import WaterQualityReadingViewSet
+from water_quality.import_views import WaterQualityImportView
 from vegetation.views import VegetationSurveyViewSet
 from wildlife.views import WildlifeSightingViewSet
 
@@ -35,6 +36,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
     path('api/v1/auth/token/', obtain_auth_token, name='api-token'),
+    path('api/v1/import/water-quality/', WaterQualityImportView.as_view(), name='import-water-quality'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
