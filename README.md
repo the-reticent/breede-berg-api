@@ -227,7 +227,7 @@ The skills that optimise network performance transfer directly to biodiversity d
 
 ## Roadmap
 
-- [ ] Seed data for real Breede and Berg river monitoring sites
+- [x] Seed data for real Breede and Berg river monitoring sites
 - [ ] CSV importer for vegetation and wildlife data
 - [ ] Date range filtering across all endpoints
 - [ ] River health summary endpoint (aggregated statistics per site)

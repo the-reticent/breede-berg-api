@@ -1,0 +1,122 @@
+[
+  {
+    "model": "sites.monitoringsite",
+    "pk": 1,
+    "fields": {
+      "name": "Rawsonville Bridge",
+      "river": "breede",
+      "latitude": "-33.6891",
+      "longitude": "19.3214",
+      "description": "Primary monitoring point near Rawsonville town bridge. Measures upstream influence of agricultural runoff from Hex River Valley.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 2,
+    "fields": {
+      "name": "Villiersdorp Reservoir Outlet",
+      "river": "breede",
+      "latitude": "-33.9881",
+      "longitude": "19.2953",
+      "description": "Monitoring point below Theewaterskloof Dam outlet. Key indicator of reservoir water quality and flow regulation impacts.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 3,
+    "fields": {
+      "name": "Worcester Weir",
+      "river": "breede",
+      "latitude": "-33.6444",
+      "longitude": "19.4481",
+      "description": "Urban monitoring point within Worcester. Captures impact of municipal water treatment discharge and urban stormwater.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 4,
+    "fields": {
+      "name": "Swellendam Confluence",
+      "river": "breede",
+      "latitude": "-34.0235",
+      "longitude": "20.4432",
+      "description": "Downstream monitoring site near Swellendam. Captures cumulative agricultural and urban inputs from the upper Breede catchment.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 5,
+    "fields": {
+      "name": "Bonnievale Bridge",
+      "river": "breede",
+      "latitude": "-33.9592",
+      "longitude": "20.0931",
+      "description": "Mid-catchment site near Bonnievale. Important for tracking wine and fruit farming irrigation return flows.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 6,
+    "fields": {
+      "name": "Wemmershoek Dam Outlet",
+      "river": "berg",
+      "latitude": "-33.8803",
+      "longitude": "19.1042",
+      "description": "Monitoring point below Wemmershoek Dam. Primary water supply source for Cape Town — critical baseline quality indicator.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 7,
+    "fields": {
+      "name": "Paarl Bridge",
+      "river": "berg",
+      "latitude": "-33.7242",
+      "longitude": "18.9625",
+      "description": "Urban monitoring point in Paarl. Measures impact of urban expansion, viticulture runoff, and informal settlement stormwater.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 8,
+    "fields": {
+      "name": "Franschhoek Tributary Junction",
+      "river": "berg",
+      "latitude": "-33.9142",
+      "longitude": "19.1203",
+      "description": "Junction where Franschhoek tributary meets the Berg River. Key point for monitoring wine estate and tourism industry impacts.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 9,
+    "fields": {
+      "name": "Hermon Gauging Station",
+      "river": "berg",
+      "latitude": "-33.4431",
+      "longitude": "18.9312",
+      "description": "Existing DWS gauging station near Hermon. Long-term flow and quality reference point for the middle Berg catchment.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 10,
+    "fields": {
+      "name": "Misverstand Dam Inlet",
+      "river": "berg",
+      "latitude": "-33.0821",
+      "longitude": "18.7653",
+      "description": "Lower Berg monitoring point at Misverstand Dam inlet. Captures cumulative catchment quality before storage for irrigation use.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  }
+]
