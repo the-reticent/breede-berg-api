@@ -245,6 +245,6 @@ MIT
 ## Author
 
 **Kudakwashe Mike Mapaya**
-Python Developer · Data Engineer · Environmental Tech
+Python Developer · Data Engineer
 
 [LinkedIn](https://linkedin.com/in/kudakwashe-mike-mapaya-654281160) · [Email](mailto:kudamapaya@gmail.com)
