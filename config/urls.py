@@ -19,7 +19,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from django.http import HttpResponseRedirect
 
 from sites.views import MonitoringSiteViewSet
 from water_quality.views import WaterQualityReadingViewSet
@@ -34,8 +33,8 @@ router.register(r'vegetation', VegetationSurveyViewSet)
 router.register(r'wildlife', WildlifeSightingViewSet)
 
 urlpatterns = [
-    path('', lambda request: HttpResponseRedirect('/api/docs/')),
     path('admin/', admin.site.urls),
+    path('', include('dashboard.urls')),
     path('api/v1/', include(router.urls)),
     path('api/v1/auth/token/', obtain_auth_token, name='api-token'),
     path('api/v1/import/water-quality/', WaterQualityImportView.as_view(), name='import-water-quality'),

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breede & Berg River Monitoring Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: #1a7a6e;
+    color: #fff;
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-title { font-size: 18px; font-weight: 500; letter-spacing: 0.01em; }
+  .topbar-sub { font-size: 13px; opacity: 0.8; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .river-btn {
+    padding: 6px 16px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.5);
+    background: transparent; color: #fff; font-size: 13px; cursor: pointer; transition: background 0.15s;
+  }
+  .river-btn.active, .river-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
+
+  .page { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 0.5px solid #e0e0e0;
+    padding: 1rem 1.25rem;
+  }
+  .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 500; color: #1a1a2e; }
+  .stat-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .stat-card.teal .stat-value { color: #1a7a6e; }
+  .stat-card.blue .stat-value { color: #185fa5; }
+  .stat-card.amber .stat-value { color: #854f0b; }
+  .stat-card.purple .stat-value { color: #534ab7; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 1.5rem;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 0.5px solid #e0e0e0;
+    padding: 1.25rem;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid #f0f0f0;
+  }
+  .card-title span { font-size: 12px; font-weight: 400; color: #aaa; margin-left: 8px; }
+
+  #map { height: 340px; border-radius: 8px; }
+
+  .site-list { max-height: 340px; overflow-y: auto; }
+  .site-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 0.5px solid #f5f5f5; cursor: pointer;
+  }
+  .site-item:last-child { border-bottom: none; }
+  .site-item:hover .site-name { color: #1a7a6e; }
+  .site-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+  .site-river {
+    font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+  }
+  .site-river.breede { background: #e1f5ee; color: #0f6e56; }
+  .site-river.berg { background: #e6f1fb; color: #185fa5; }
+
+  .chart-wrap { position: relative; height: 260px; }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .metric-mini {
+    background: #f8f9fa; border-radius: 8px; padding: 10px 12px;
+    border: 0.5px solid #e8e8e8;
+  }
+  .metric-mini-label { font-size: 11px; color: #999; margin-bottom: 3px; }
+  .metric-mini-val { font-size: 18px; font-weight: 500; color: #1a1a2e; }
+  .metric-mini-unit { font-size: 11px; color: #bbb; margin-left: 3px; }
+
+  .species-bar { margin-bottom: 10px; }
+  .species-name { font-size: 12px; color: #555; margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .bar-track { background: #f0f0f0; border-radius: 4px; height: 8px; }
+  .bar-fill { height: 8px; border-radius: 4px; background: #1a7a6e; transition: width 0.5s; }
+  .bar-fill.invasive { background: #d85a30; }
+
+  .sighting-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 0.5px solid #f5f5f5; font-size: 13px;
+  }
+  .sighting-item:last-child { border-bottom: none; }
+  .sighting-name { color: #1a1a2e; font-weight: 500; }
+  .sighting-meta { color: #aaa; font-size: 12px; }
+  .sighting-count {
+    background: #e1f5ee; color: #0f6e56; font-size: 12px; font-weight: 500;
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  .empty-state { text-align: center; padding: 2rem; color: #bbb; font-size: 13px; }
+
+  .loading { text-align: center; padding: 1rem; color: #bbb; font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Breede &amp; Berg River Monitoring</div>
+    <div class="topbar-sub">Western Cape, South Africa</div>
+  </div>
+  <div class="topbar-right">
+    <button class="river-btn active" onclick="filterRiver('all', this)">All rivers</button>
+    <button class="river-btn" onclick="filterRiver('breede', this)">Breede</button>
+    <button class="river-btn" onclick="filterRiver('berg', this)">Berg</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="stat-grid">
+    <div class="stat-card teal">
+      <div class="stat-label">Monitoring sites</div>
+      <div class="stat-value" id="stat-sites">—</div>
+      <div class="stat-sub">across both rivers</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Water quality readings</div>
+      <div class="stat-value" id="stat-readings">—</div>
+      <div class="stat-sub" id="stat-readings-sub">total recorded</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Vegetation surveys</div>
+      <div class="stat-value" id="stat-vegetation">—</div>
+      <div class="stat-sub" id="stat-veg-invasive">species recorded</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Wildlife sightings</div>
+      <div class="stat-value" id="stat-wildlife">—</div>
+      <div class="stat-sub">observations logged</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Monitoring sites <span id="map-count"></span></div>
+      <div id="map"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sites by river</div>
+      <div class="site-list" id="site-list">
+        <div class="loading">Loading sites...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Water quality — recent readings</div>
+      <div class="metric-row">
+        <div class="metric-mini">
+          <div class="metric-mini-label">Avg pH</div>
+          <div class="metric-mini-val" id="avg-ph">—<span class="metric-mini-unit"></span></div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-mini-label">Avg temperature</div>
+          <div class="metric-mini-val" id="avg-temp">—<span class="metric-mini-unit">°C</span></div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-mini-label">Avg dissolved O₂</div>
+          <div class="metric-mini-val" id="avg-do">—<span class="metric-mini-unit">mg/L</span></div>
+        </div>
+        <div class="metric-mini">
+          <div class="metric-mini-label">Avg turbidity</div>
+          <div class="metric-mini-val" id="avg-turb">—<span class="metric-mini-unit">NTU</span></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="wq-chart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">pH trend over time</div>
+      <div class="chart-wrap">
+        <canvas id="ph-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Vegetation surveys <span id="veg-invasive-badge"></span></div>
+      <div id="veg-list"><div class="loading">Loading vegetation data...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Wildlife sightings</div>
+      <div id="wildlife-list"><div class="loading">Loading wildlife data...</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '/api/v1';
+let allSites = [];
+let allReadings = [];
+let allVegetation = [];
+let allWildlife = [];
+let map = null;
+let markers = [];
+let wqChart = null;
+let phChart = null;
+let currentRiver = 'all';
+
+async function fetchAll(url) {
+  const results = [];
+  let next = url;
+  while (next) {
+    const res = await fetch(next);
+    const data = await res.json();
+    if (data.results) {
+      results.push(...data.results);
+      next = data.next;
+    } else if (Array.isArray(data)) {
+      results.push(...data);
+      next = null;
+    } else {
+      next = null;
+    }
+  }
+  return results;
+}
+
+function avg(arr) {
+  const valid = arr.filter(v => v !== null && v !== undefined && !isNaN(parseFloat(v)));
+  if (!valid.length) return null;
+  return valid.reduce((s, v) => s + parseFloat(v), 0) / valid.length;
+}
+
+function fmt(val, dec) {
+  if (val === null || val === undefined) return '—';
+  return parseFloat(val).toFixed(dec);
+}
+
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([-33.75, 19.3], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 18
+  }).addTo(map);
+}
+
+function renderMap(sites) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  sites.forEach(site => {
+    const color = site.river === 'breede' ? '#1a7a6e' : '#185fa5';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
+      iconSize: [12, 12], iconAnchor: [6, 6]
+    });
+    const m = L.marker([parseFloat(site.latitude), parseFloat(site.longitude)], { icon })
+      .bindPopup(`<strong>${site.name}</strong><br><span style="font-size:12px;color:#666">${site.river === 'breede' ? 'Breede River' : 'Berg River'}</span><br><span style="font-size:11px;color:#999">${site.description ? site.description.substring(0, 80) + '...' : ''}</span>`)
+      .addTo(map);
+    markers.push(m);
+  });
+  document.getElementById('map-count').textContent = `${sites.length} sites`;
+  if (sites.length > 0) {
+    const bounds = L.latLngBounds(sites.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]));
+    map.fitBounds(bounds, { padding: [30, 30] });
+  }
+}
+
+function renderSiteList(sites) {
+  const el = document.getElementById('site-list');
+  if (!sites.length) { el.innerHTML = '<div class="empty-state">No sites found</div>'; return; }
+  el.innerHTML = sites.map(s => `
+    <div class="site-item">
+      <div>
+        <div class="site-name">${s.name}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">${s.latitude}, ${s.longitude}</div>
+      </div>
+      <span class="site-river ${s.river}">${s.river === 'breede' ? 'Breede' : 'Berg'}</span>
+    </div>
+  `).join('');
+  document.getElementById('stat-sites').textContent = sites.length;
+}
+
+function renderWaterQuality(readings) {
+  document.getElementById('stat-readings').textContent = readings.length;
+
+  const phAvg = avg(readings.map(r => r.ph));
+  const tempAvg = avg(readings.map(r => r.temperature));
+  const doAvg = avg(readings.map(r => r.dissolved_oxygen));
+  const turbAvg = avg(readings.map(r => r.turbidity));
+
+  document.getElementById('avg-ph').innerHTML = phAvg !== null ? fmt(phAvg, 1) : '—';
+  document.getElementById('avg-temp').innerHTML = tempAvg !== null ? `${fmt(tempAvg, 1)}<span class="metric-mini-unit">°C</span>` : '—';
+  document.getElementById('avg-do').innerHTML = doAvg !== null ? `${fmt(doAvg, 1)}<span class="metric-mini-unit">mg/L</span>` : '—';
+  document.getElementById('avg-turb').innerHTML = turbAvg !== null ? `${fmt(turbAvg, 1)}<span class="metric-mini-unit">NTU</span>` : '—';
+
+  const recent = [...readings].sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at)).slice(0, 10).reverse();
+
+  if (wqChart) wqChart.destroy();
+  const ctx = document.getElementById('wq-chart').getContext('2d');
+  wqChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: recent.map(r => new Date(r.recorded_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })),
+      datasets: [
+        { label: 'Temperature (°C)', data: recent.map(r => r.temperature ? parseFloat(r.temperature) : null), backgroundColor: '#f0997b', borderRadius: 4 },
+        { label: 'Dissolved O₂ (mg/L)', data: recent.map(r => r.dissolved_oxygen ? parseFloat(r.dissolved_oxygen) : null), backgroundColor: '#85b7eb', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 12 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  if (phChart) phChart.destroy();
+  const ctx2 = document.getElementById('ph-chart').getContext('2d');
+  const phReadings = recent.filter(r => r.ph !== null);
+  phChart = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: phReadings.map(r => new Date(r.recorded_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })),
+      datasets: [{
+        label: 'pH', data: phReadings.map(r => parseFloat(r.ph)),
+        borderColor: '#1a7a6e', backgroundColor: 'rgba(26,122,110,0.08)',
+        borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#1a7a6e', fill: true, tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } },
+          min: 5, max: 10,
+          title: { display: true, text: 'pH', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function renderVegetation(surveys) {
+  document.getElementById('stat-vegetation').textContent = surveys.length;
+  const el = document.getElementById('veg-list');
+  if (!surveys.length) {
+    el.innerHTML = '<div class="empty-state">No vegetation surveys recorded yet</div>';
+    return;
+  }
+  const counts = {};
+  surveys.forEach(s => {
+    const key = s.species_name;
+    if (!counts[key]) counts[key] = { name: s.species_name, common: s.common_name, count: 0, invasive: s.invasive };
+    counts[key].count++;
+  });
+  const sorted = Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 8);
+  const max = sorted[0]?.count || 1;
+  const invasiveCount = surveys.filter(s => s.invasive).length;
+  document.getElementById('stat-veg-invasive').textContent = `${invasiveCount} invasive records`;
+  if (invasiveCount > 0) {
+    document.getElementById('veg-invasive-badge').innerHTML = `<span style="background:#faece7;color:#993c1d;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px">${invasiveCount} invasive</span>`;
+  }
+  el.innerHTML = sorted.map(s => `
+    <div class="species-bar">
+      <div class="species-name">
+        <span>${s.name}${s.common ? ` <span style="color:#aaa;font-weight:400">(${s.common})</span>` : ''}${s.invasive ? ' <span style="color:#d85a30;font-size:10px">invasive</span>' : ''}</span>
+        <span style="color:#aaa">${s.count}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill${s.invasive ? ' invasive' : ''}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function renderWildlife(sightings) {
+  document.getElementById('stat-wildlife').textContent = sightings.length;
+  const el = document.getElementById('wildlife-list');
+  if (!sightings.length) {
+    el.innerHTML = '<div class="empty-state">No wildlife sightings recorded yet</div>';
+    return;
+  }
+  const recent = [...sightings].sort((a, b) => new Date(b.observed_at) - new Date(a.observed_at)).slice(0, 10);
+  el.innerHTML = recent.map(s => `
+    <div class="sighting-item">
+      <div>
+        <div class="sighting-name">${s.common_name || s.species_name}</div>
+        <div class="sighting-meta">${s.common_name ? s.species_name + ' · ' : ''}${new Date(s.observed_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+      </div>
+      <span class="sighting-count">${s.count} seen</span>
+    </div>
+  `).join('');
+}
+
+function filterRiver(river, btn) {
+  currentRiver = river;
+  document.querySelectorAll('.river-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const sites = river === 'all' ? allSites : allSites.filter(s => s.river === river);
+  const siteIds = new Set(sites.map(s => s.id));
+  const readings = allReadings.filter(r => siteIds.has(r.site));
+  const vegetation = allVegetation.filter(v => siteIds.has(v.site));
+  const wildlife = allWildlife.filter(w => siteIds.has(w.site));
+
+  renderMap(sites);
+  renderSiteList(sites);
+  renderWaterQuality(readings);
+  renderVegetation(vegetation);
+  renderWildlife(wildlife);
+}
+
+async function init() {
+  initMap();
+  try {
+    [allSites, allReadings, allVegetation, allWildlife] = await Promise.all([
+      fetchAll(`${API}/sites/?ordering=river,name`),
+      fetchAll(`${API}/water-quality/?ordering=-recorded_at`),
+      fetchAll(`${API}/vegetation/?ordering=-surveyed_at`),
+      fetchAll(`${API}/wildlife/?ordering=-observed_at`),
+    ]);
+    renderMap(allSites);
+    renderSiteList(allSites);
+    renderWaterQuality(allReadings);
+    renderVegetation(allVegetation);
+    renderWildlife(allWildlife);
+  } catch (e) {
+    console.error('Dashboard load error:', e);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
