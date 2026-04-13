@@ -118,5 +118,101 @@
       "description": "Lower Berg monitoring point at Misverstand Dam inlet. Captures cumulative catchment quality before storage for irrigation use.",
       "created_at": "2026-01-01T08:00:00Z"
     }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 11,
+    "fields": {
+      "name": "Mitchell's Pass",
+      "river": "breede",
+      "latitude": "-33.3700",
+      "longitude": "19.3100",
+      "description": "Upper Breede catchment at Mitchell's Pass near Ceres. Source area monitoring point — baseline quality before agricultural influence.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 12,
+    "fields": {
+      "name": "Wolseley Town",
+      "river": "breede",
+      "latitude": "-33.4167",
+      "longitude": "19.2167",
+      "description": "Upper Breede near Wolseley. Active Intaba rehabilitation site — key monitoring point for restoration progress tracking.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 13,
+    "fields": {
+      "name": "Slanghoek Valley",
+      "river": "breede",
+      "latitude": "-33.6500",
+      "longitude": "19.2800",
+      "description": "Slanghoek River tributary junction with the Breede. Monitors runoff from Slanghoek Mountains and surrounding vineyards.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 14,
+    "fields": {
+      "name": "Robertson Wine Valley",
+      "river": "breede",
+      "latitude": "-33.8000",
+      "longitude": "19.8833",
+      "description": "Mid-catchment site in the Robertson wine valley. Captures irrigation return flows and nutrient loading from intensive viticulture.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 15,
+    "fields": {
+      "name": "Witsand Estuary",
+      "river": "breede",
+      "latitude": "-34.3833",
+      "longitude": "20.8500",
+      "description": "Breede River mouth at Witsand, St Sebastian Bay. Critical estuarine monitoring point — cumulative indicator of entire catchment health.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 16,
+    "fields": {
+      "name": "Berg River Dam",
+      "river": "berg",
+      "latitude": "-33.9024",
+      "longitude": "19.0570",
+      "description": "Upper Berg River Dam near Franschhoek. Primary Cape Town water supply — baseline quality monitoring above all catchment disturbances.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 17,
+    "fields": {
+      "name": "Wellington Bridge",
+      "river": "berg",
+      "latitude": "-33.6400",
+      "longitude": "19.0100",
+      "description": "Berg River at Wellington. Captures Krom River tributary inputs and downstream effects of Wellington urban area.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
+  },
+  {
+    "model": "sites.monitoringsite",
+    "pk": 18,
+    "fields": {
+      "name": "Velddrif Estuary",
+      "river": "berg",
+      "latitude": "-32.7667",
+      "longitude": "18.1667",
+      "description": "Berg River mouth at Velddrif, St Helena Bay. Important bird habitat and estuarine monitoring point — end-of-catchment water quality indicator.",
+      "created_at": "2026-01-01T08:00:00Z"
+    }
   }
 ]
