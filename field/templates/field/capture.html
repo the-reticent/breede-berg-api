@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Field Data Capture</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f3; min-height: 100vh; }
+
+  .topbar { background: #1a7a6e; color: #fff; padding: 14px 20px; }
+  .topbar-title { font-size: 17px; font-weight: 500; }
+  .topbar-sub { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+
+  .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0e0e0; }
+  .tab {
+    flex: 1; padding: 12px 8px; text-align: center; font-size: 13px;
+    color: #888; border: none; background: transparent; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.15s;
+  }
+  .tab.active { color: #1a7a6e; border-bottom-color: #1a7a6e; font-weight: 500; }
+
+  .form-section { display: none; padding: 16px; }
+  .form-section.active { display: block; }
+
+  .field-group { margin-bottom: 14px; }
+  .field-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; display: block; }
+  .field-input {
+    width: 100%; padding: 11px 13px; border: 0.5px solid #ddd; border-radius: 8px;
+    font-size: 15px; color: #1a1a2e; background: #fff; appearance: none;
+    -webkit-appearance: none; transition: border-color 0.15s;
+  }
+  .field-input:focus { outline: none; border-color: #1a7a6e; }
+  select.field-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  textarea.field-input { resize: vertical; min-height: 72px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .gps-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .gps-badge { font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 500; }
+  .gps-badge.detected { background: #e1f5ee; color: #0f6e56; }
+  .gps-badge.detecting { background: #fff8e0; color: #854f0b; }
+  .gps-coords { font-size: 11px; color: #aaa; }
+
+  .submit-btn {
+    width: 100%; padding: 14px; background: #1a7a6e; color: #fff;
+    border: none; border-radius: 10px; font-size: 16px; font-weight: 500;
+    cursor: pointer; margin-top: 8px; transition: background 0.15s;
+  }
+  .submit-btn:active { background: #0f6e56; }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .alert {
+    padding: 12px 16px; border-radius: 8px; font-size: 14px;
+    margin-bottom: 14px; display: none;
+  }
+  .alert.success { background: #e1f5ee; color: #0f6e56; display: block; }
+  .alert.error { background: #faece7; color: #993c1d; display: block; }
+
+  .invasive-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border: 0.5px solid #ddd; border-radius: 8px; background: #fff; margin-bottom: 14px; }
+  .invasive-label { font-size: 15px; color: #1a1a2e; }
+  .toggle { position: relative; width: 44px; height: 24px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: #ddd; border-radius: 24px; transition: 0.2s; cursor: pointer; }
+  .toggle-slider:before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle-slider { background: #d85a30; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  .login-screen { padding: 24px 16px; }
+  .login-card { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 24px; }
+  .login-title { font-size: 18px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">Field data capture</div>
+  <div class="topbar-sub">Breede &amp; Berg River Monitoring</div>
+</div>
+
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-title">Sign in</div>
+    <div class="login-sub">Enter your field worker credentials to continue</div>
+    <div id="login-alert" class="alert"></div>
+    <div class="field-group">
+      <label class="field-label">Username</label>
+      <input type="text" id="login-username" class="field-input" autocomplete="username" placeholder="your username"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Password</label>
+      <input type="password" id="login-password" class="field-input" autocomplete="current-password" placeholder="your password"/>
+    </div>
+    <button class="submit-btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<div id="main-screen" style="display:none;">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('water', this)">Water quality</button>
+    <button class="tab" onclick="switchTab('vegetation', this)">Vegetation</button>
+    <button class="tab" onclick="switchTab('wildlife', this)">Wildlife</button>
+  </div>
+
+  <div id="tab-water" class="form-section active">
+    <div id="wq-alert" class="alert"></div>
+    <div class="field-group">
+      <label class="field-label">Monitoring site</label>
+      <select id="wq-site" class="field-input"><option value="">Loading sites...</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Date &amp; time</label>
+      <input type="datetime-local" id="wq-datetime" class="field-input"/>
+    </div>
+    <div class="gps-row">
+      <span id="gps-badge" class="gps-badge detecting">Detecting GPS...</span>
+      <span id="gps-coords" class="gps-coords"></span>
+    </div>
+    <div class="grid-2">
+      <div class="field-group">
+        <label class="field-label">pH</label>
+        <input type="number" step="0.1" min="0" max="14" id="wq-ph" class="field-input" placeholder="e.g. 7.2"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Temperature (°C)</label>
+        <input type="number" step="0.1" id="wq-temp" class="field-input" placeholder="e.g. 18.4"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Dissolved O₂ (mg/L)</label>
+        <input type="number" step="0.1" id="wq-do" class="field-input" placeholder="e.g. 8.5"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Turbidity (NTU)</label>
+        <input type="number" step="0.1" id="wq-turb" class="field-input" placeholder="e.g. 12.3"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Conductivity (µS/cm)</label>
+        <input type="number" step="0.1" id="wq-cond" class="field-input" placeholder="e.g. 245"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Notes</label>
+      <textarea id="wq-notes" class="field-input" placeholder="Conditions, observations, weather..."></textarea>
+    </div>
+    <button class="submit-btn" id="wq-btn" onclick="submitWaterQuality()">Submit reading</button>
+  </div>
+
+  <div id="tab-vegetation" class="form-section">
+    <div id="veg-alert" class="alert"></div>
+    <div class="field-group">
+      <label class="field-label">Monitoring site</label>
+      <select id="veg-site" class="field-input"><option value="">Loading sites...</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Survey date</label>
+      <input type="date" id="veg-date" class="field-input"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Species name (scientific)</label>
+      <input type="text" id="veg-species" class="field-input" placeholder="e.g. Prionium serratum"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Common name</label>
+      <input type="text" id="veg-common" class="field-input" placeholder="e.g. Palmiet"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Cover percentage (%)</label>
+      <input type="number" step="0.1" min="0" max="100" id="veg-cover" class="field-input" placeholder="e.g. 35"/>
+    </div>
+    <div class="invasive-row">
+      <span class="invasive-label">Invasive species</span>
+      <label class="toggle">
+        <input type="checkbox" id="veg-invasive"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Notes</label>
+      <textarea id="veg-notes" class="field-input" placeholder="Plant health, density, observations..."></textarea>
+    </div>
+    <button class="submit-btn" id="veg-btn" onclick="submitVegetation()">Submit survey</button>
+  </div>
+
+  <div id="tab-wildlife" class="form-section">
+    <div id="wl-alert" class="alert"></div>
+    <div class="field-group">
+      <label class="field-label">Monitoring site</label>
+      <select id="wl-site" class="field-input"><option value="">Loading sites...</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Date &amp; time observed</label>
+      <input type="datetime-local" id="wl-datetime" class="field-input"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Species name (scientific)</label>
+      <input type="text" id="wl-species" class="field-input" placeholder="e.g. Ardea cinerea"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Common name</label>
+      <input type="text" id="wl-common" class="field-input" placeholder="e.g. Grey Heron"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Count</label>
+      <input type="number" min="1" id="wl-count" class="field-input" value="1"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Notes</label>
+      <textarea id="wl-notes" class="field-input" placeholder="Behaviour, habitat use, observations..."></textarea>
+    </div>
+    <button class="submit-btn" id="wl-btn" onclick="submitWildlife()">Submit sighting</button>
+  </div>
+</div>
+
+<script>
+const API = '/api/v1';
+let token = localStorage.getItem('field_token') || '';
+let sites = [];
+
+function now() {
+  const d = new Date();
+  return d.toISOString().slice(0, 16);
+}
+
+function setNow() {
+  document.getElementById('wq-datetime').value = now();
+  document.getElementById('wl-datetime').value = now();
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('veg-date').value = today;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'alert ' + type;
+  setTimeout(() => { el.className = 'alert'; }, 5000);
+}
+
+function populateSites() {
+  const selects = ['wq-site', 'veg-site', 'wl-site'];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">Select a site...</option>';
+    sites.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name + ' (' + (s.river === 'breede' ? 'Breede' : 'Berg') + ')';
+      sel.appendChild(opt);
+    });
+  });
+}
+
+async function loadSites() {
+  try {
+    const res = await fetch(`${API}/sites/?ordering=river,name&page_size=100`);
+    const data = await res.json();
+    sites = data.results || data;
+    populateSites();
+  } catch(e) {
+    console.error('Could not load sites', e);
+  }
+}
+
+function detectGPS() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('gps-badge').textContent = 'GPS detected';
+    document.getElementById('gps-badge').className = 'gps-badge detected';
+    document.getElementById('gps-coords').textContent =
+      pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4);
+  }, () => {
+    document.getElementById('gps-badge').textContent = 'GPS unavailable';
+    document.getElementById('gps-badge').className = 'gps-badge';
+    document.getElementById('gps-coords').textContent = '';
+  });
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) {
+    showAlert('login-alert', 'Please enter your username and password', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/auth/token/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ username, password })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      token = data.token;
+      localStorage.setItem('field_token', token);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-screen').style.display = 'block';
+      loadSites();
+      setNow();
+      detectGPS();
+    } else {
+      showAlert('login-alert', 'Invalid username or password', 'error');
+    }
+  } catch(e) {
+    showAlert('login-alert', 'Connection error — check your internet connection', 'error');
+  }
+}
+
+async function submitWaterQuality() {
+  const site = document.getElementById('wq-site').value;
+  const dt = document.getElementById('wq-datetime').value;
+  if (!site || !dt) { showAlert('wq-alert', 'Site and date/time are required', 'error'); return; }
+
+  const btn = document.getElementById('wq-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  const payload = {
+    site: parseInt(site),
+    recorded_at: new Date(dt).toISOString(),
+    ph: document.getElementById('wq-ph').value || null,
+    temperature: document.getElementById('wq-temp').value || null,
+    dissolved_oxygen: document.getElementById('wq-do').value || null,
+    turbidity: document.getElementById('wq-turb').value || null,
+    conductivity: document.getElementById('wq-cond').value || null,
+    notes: document.getElementById('wq-notes').value || ''
+  };
+
+  try {
+    const res = await fetch(`${API}/water-quality/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Token ' + token },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showAlert('wq-alert', 'Reading submitted successfully', 'success');
+      ['wq-ph','wq-temp','wq-do','wq-turb','wq-cond','wq-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('wq-datetime').value = now();
+    } else {
+      const err = await res.json();
+      showAlert('wq-alert', 'Error: ' + JSON.stringify(err), 'error');
+    }
+  } catch(e) {
+    showAlert('wq-alert', 'Connection error — try again', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Submit reading';
+}
+
+async function submitVegetation() {
+  const site = document.getElementById('veg-site').value;
+  const date = document.getElementById('veg-date').value;
+  const species = document.getElementById('veg-species').value.trim();
+  if (!site || !date || !species) { showAlert('veg-alert', 'Site, date and species name are required', 'error'); return; }
+
+  const btn = document.getElementById('veg-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  const payload = {
+    site: parseInt(site),
+    surveyed_at: date,
+    species_name: species,
+    common_name: document.getElementById('veg-common').value || '',
+    cover_percentage: document.getElementById('veg-cover').value || null,
+    invasive: document.getElementById('veg-invasive').checked,
+    notes: document.getElementById('veg-notes').value || ''
+  };
+
+  try {
+    const res = await fetch(`${API}/vegetation/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Token ' + token },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showAlert('veg-alert', 'Survey submitted successfully', 'success');
+      ['veg-species','veg-common','veg-cover','veg-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('veg-invasive').checked = false;
+    } else {
+      const err = await res.json();
+      showAlert('veg-alert', 'Error: ' + JSON.stringify(err), 'error');
+    }
+  } catch(e) {
+    showAlert('veg-alert', 'Connection error — try again', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Submit survey';
+}
+
+async function submitWildlife() {
+  const site = document.getElementById('wl-site').value;
+  const dt = document.getElementById('wl-datetime').value;
+  const species = document.getElementById('wl-species').value.trim();
+  if (!site || !dt || !species) { showAlert('wl-alert', 'Site, date/time and species are required', 'error'); return; }
+
+  const btn = document.getElementById('wl-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  const payload = {
+    site: parseInt(site),
+    observed_at: new Date(dt).toISOString(),
+    species_name: species,
+    common_name: document.getElementById('wl-common').value || '',
+    count: parseInt(document.getElementById('wl-count').value) || 1,
+    notes: document.getElementById('wl-notes').value || ''
+  };
+
+  try {
+    const res = await fetch(`${API}/wildlife/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Token ' + token },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showAlert('wl-alert', 'Sighting submitted successfully', 'success');
+      ['wl-species','wl-common','wl-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('wl-count').value = 1;
+      document.getElementById('wl-datetime').value = now();
+    } else {
+      const err = await res.json();
+      showAlert('wl-alert', 'Error: ' + JSON.stringify(err), 'error');
+    }
+  } catch(e) {
+    showAlert('wl-alert', 'Connection error — try again', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Submit sighting';
+}
+
+if (token) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  loadSites();
+  setNow();
+  detectGPS();
+}
+</script>
+</body>
+</html>

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'water_quality',
     'vegetation',
     'wildlife',
+    'field',
 ]
 
 REST_FRAMEWORK = {
