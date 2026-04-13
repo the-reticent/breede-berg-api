@@ -70,6 +70,19 @@
   .login-card { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 24px; }
   .login-title { font-size: 18px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; }
   .login-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+  
+  .photo-upload-area {
+    border: 1.5px dashed #cce8d8; border-radius: 10px;
+    padding: 16px; text-align: center; margin-bottom: 14px;
+    background: #f8fffd; cursor: pointer; transition: border-color 0.15s;
+  }
+.photo-upload-area:hover { border-color: #1a7a6e; }
+.photo-upload-area input { display: none; }
+.photo-upload-label { font-size: 13px; color: #1a7a6e; font-weight: 500; cursor: pointer; }
+.photo-upload-label span { display: block; font-size: 11px; color: #aaa; margin-top: 3px; font-weight: 400; }
+.photo-preview { display: none; margin-bottom: 14px; }
+.photo-preview img { width: 100%; border-radius: 8px; border: 0.5px solid #e0e0e0; }
+.photo-preview-remove { font-size: 12px; color: #d85a30; cursor: pointer; margin-top: 6px; display: block; text-align: center; }
 </style>
 </head>
 <body>
@@ -143,6 +156,17 @@
       <label class="field-label">Notes</label>
       <textarea id="wq-notes" class="field-input" placeholder="Conditions, observations, weather..."></textarea>
     </div>
+    <div class="photo-upload-area" onclick="document.getElementById('wq-photo-input').click()">
+    <input type="file" id="wq-photo-input" accept="image/*" capture="environment" onchange="previewPhoto(this, 'wq-preview')"/>
+    <label class="photo-upload-label">
+        Take or upload a photo
+        <span>Optional — site condition, water sample, equipment reading</span>
+    </label>
+    </div>
+    <div class="photo-preview" id="wq-preview">
+    <img id="wq-preview-img" src="" alt="Preview"/>
+    <span class="photo-preview-remove" onclick="removePhoto('wq-photo-input', 'wq-preview')">Remove photo</span>
+    </div>
     <button class="submit-btn" id="wq-btn" onclick="submitWaterQuality()">Submit reading</button>
   </div>
 
@@ -179,6 +203,17 @@
       <label class="field-label">Notes</label>
       <textarea id="veg-notes" class="field-input" placeholder="Plant health, density, observations..."></textarea>
     </div>
+    <div class="photo-upload-area" onclick="document.getElementById('veg-photo-input').click()">
+    <input type="file" id="veg-photo-input" accept="image/*" capture="environment" onchange="previewPhoto(this, 'veg-preview')"/>
+    <label class="photo-upload-label">
+        Take or upload a photo
+        <span>Optional — species close-up, coverage area, invasive plant</span>
+    </label>
+    </div>
+    <div class="photo-preview" id="veg-preview">
+    <img id="veg-preview-img" src="" alt="Preview"/>
+    <span class="photo-preview-remove" onclick="removePhoto('veg-photo-input', 'veg-preview')">Remove photo</span>
+    </div>
     <button class="submit-btn" id="veg-btn" onclick="submitVegetation()">Submit survey</button>
   </div>
 
@@ -207,6 +242,17 @@
     <div class="field-group">
       <label class="field-label">Notes</label>
       <textarea id="wl-notes" class="field-input" placeholder="Behaviour, habitat use, observations..."></textarea>
+    </div>
+    <div class="photo-upload-area" onclick="document.getElementById('wl-photo-input').click()">
+    <input type="file" id="wl-photo-input" accept="image/*" capture="environment" onchange="previewPhoto(this, 'wl-preview')"/>
+    <label class="photo-upload-label">
+        Take or upload a photo
+        <span>Optional — species photo, habitat, behaviour</span>
+    </label>
+    </div>
+    <div class="photo-preview" id="wl-preview">
+    <img id="wl-preview-img" src="" alt="Preview"/>
+    <span class="photo-preview-remove" onclick="removePhoto('wl-photo-input', 'wl-preview')">Remove photo</span>
     </div>
     <button class="submit-btn" id="wl-btn" onclick="submitWildlife()">Submit sighting</button>
   </div>
@@ -358,6 +404,8 @@ async function submitWaterQuality() {
     });
     if (res.ok) {
       showAlert('wq-alert', 'Reading submitted successfully', 'success');
+      await uploadPhoto(site, 'water_quality', dt, document.getElementById('wq-photo-input'));
+      removePhoto('wq-photo-input', 'wq-preview');
       ['wq-ph','wq-temp','wq-do','wq-turb','wq-cond','wq-notes'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('wq-datetime').value = now();
     } else {
@@ -397,6 +445,8 @@ async function submitVegetation() {
     });
     if (res.ok) {
       showAlert('veg-alert', 'Survey submitted successfully', 'success');
+      await uploadPhoto(site, 'vegetation', date + 'T00:00:00', document.getElementById('veg-photo-input'));
+      removePhoto('veg-photo-input', 'veg-preview');
       ['veg-species','veg-common','veg-cover','veg-notes'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('veg-invasive').checked = false;
     } else {
@@ -435,6 +485,8 @@ async function submitWildlife() {
     });
     if (res.ok) {
       showAlert('wl-alert', 'Sighting submitted successfully', 'success');
+      await uploadPhoto(site, 'wildlife', dt, document.getElementById('wl-photo-input'));
+      removePhoto('wl-photo-input', 'wl-preview');
       ['wl-species','wl-common','wl-notes'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('wl-count').value = 1;
       document.getElementById('wl-datetime').value = now();
@@ -454,6 +506,49 @@ if (token) {
   loadSites();
   setNow();
   detectGPS();
+}
+
+function previewPhoto(input, previewId) {
+  const preview = document.getElementById(previewId);
+  const img = preview.querySelector('img');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      img.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function removePhoto(inputId, previewId) {
+  document.getElementById(inputId).value = '';
+  const preview = document.getElementById(previewId);
+  preview.style.display = 'none';
+  preview.querySelector('img').src = '';
+}
+
+async function uploadPhoto(siteId, category, datetime, photoInput) {
+  if (!photoInput.files || !photoInput.files[0]) return;
+  const formData = new FormData();
+  formData.append('site', siteId);
+  formData.append('category', category);
+  formData.append('recorded_at', new Date(datetime).toISOString());
+  formData.append('image', photoInput.files[0]);
+  formData.append('caption', '');
+  try {
+    await fetch(`${API}/photos/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token ' + token,
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      credentials: 'same-origin',
+      body: formData
+    });
+  } catch(e) {
+    console.error('Photo upload failed', e);
+  }
 }
 </script>
 </body>

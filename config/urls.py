@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -27,12 +29,14 @@ from water_quality.views import WaterQualityReadingViewSet
 from water_quality.import_views import WaterQualityImportView
 from vegetation.views import VegetationSurveyViewSet
 from wildlife.views import WildlifeSightingViewSet
+from photos.views import SitePhotoViewSet
 
 router = DefaultRouter()
 router.register(r'sites', MonitoringSiteViewSet)
 router.register(r'water-quality', WaterQualityReadingViewSet)
 router.register(r'vegetation', VegetationSurveyViewSet)
 router.register(r'wildlife', WildlifeSightingViewSet)
+router.register(r'photos', SitePhotoViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,3 +48,6 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
