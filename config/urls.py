@@ -30,6 +30,7 @@ from water_quality.import_views import WaterQualityImportView
 from vegetation.views import VegetationSurveyViewSet
 from wildlife.views import WildlifeSightingViewSet
 from photos.views import SitePhotoViewSet
+from planting.views import PlantingEventViewSet, SurvivalCheckViewSet
 
 router = DefaultRouter()
 router.register(r'sites', MonitoringSiteViewSet)
@@ -37,6 +38,8 @@ router.register(r'water-quality', WaterQualityReadingViewSet)
 router.register(r'vegetation', VegetationSurveyViewSet)
 router.register(r'wildlife', WildlifeSightingViewSet)
 router.register(r'photos', SitePhotoViewSet)
+router.register(r'planting-events', PlantingEventViewSet)
+router.register(r'survival-checks', SurvivalCheckViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

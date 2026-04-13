@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'wildlife',
     'field',
     'photos',
+    'planting',
 ]
 
 REST_FRAMEWORK = {

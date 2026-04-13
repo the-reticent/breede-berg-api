@@ -114,6 +114,7 @@
     <button class="tab active" onclick="switchTab('water', this)">Water quality</button>
     <button class="tab" onclick="switchTab('vegetation', this)">Vegetation</button>
     <button class="tab" onclick="switchTab('wildlife', this)">Wildlife</button>
+    <button class="tab" onclick="switchTab('planting', this)">Planting</button>
   </div>
 
   <div id="tab-water" class="form-section active">
@@ -256,6 +257,73 @@
     </div>
     <button class="submit-btn" id="wl-btn" onclick="submitWildlife()">Submit sighting</button>
   </div>
+
+  <div id="tab-planting" class="form-section">
+  <div id="pl-alert" class="alert"></div>
+  <div class="field-group">
+    <label class="field-label">Monitoring site</label>
+    <select id="pl-site" class="field-input"><option value="">Select a site...</option></select>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Planting date</label>
+    <input type="date" id="pl-date" class="field-input"/>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Species name (scientific)</label>
+    <input type="text" id="pl-species" class="field-input" placeholder="e.g. Podocarpus elongatus"/>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Common name</label>
+    <input type="text" id="pl-common" class="field-input" placeholder="e.g. Breede River Yellowwood"/>
+  </div>
+  <div class="grid-2">
+    <div class="field-group">
+      <label class="field-label">Quantity planted</label>
+      <input type="number" min="1" id="pl-qty" class="field-input" placeholder="e.g. 50"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Method</label>
+      <select id="pl-method" class="field-input">
+        <option value="">Select...</option>
+        <option value="seedling">Seedling</option>
+        <option value="direct seed">Direct seed</option>
+        <option value="cutting">Cutting</option>
+      </select>
+    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Funding source</label>
+    <select id="pl-funding" class="field-input">
+      <option value="">Select...</option>
+      <option value="Reforest Action">Reforest Action</option>
+      <option value="DEA&DP">DEA&DP</option>
+      <option value="LandCare">LandCare</option>
+      <option value="FSC">FSC</option>
+      <option value="Private">Private</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Planted by</label>
+    <input type="text" id="pl-by" class="field-input" placeholder="e.g. Intaba Environmental Services"/>
+  </div>
+  <div class="photo-upload-area" onclick="document.getElementById('pl-photo-input').click()">
+    <input type="file" id="pl-photo-input" accept="image/*" capture="environment" onchange="previewPhoto(this, 'pl-preview')"/>
+    <label class="photo-upload-label">
+      Take or upload a photo
+      <span>Optional — planting site, seedlings, before/after</span>
+    </label>
+  </div>
+  <div class="photo-preview" id="pl-preview">
+    <img id="pl-preview-img" src="" alt="Preview"/>
+    <span class="photo-preview-remove" onclick="removePhoto('pl-photo-input', 'pl-preview')">Remove photo</span>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Notes</label>
+    <textarea id="pl-notes" class="field-input" placeholder="Soil conditions, weather, observations..."></textarea>
+  </div>
+  <button class="submit-btn" id="pl-btn" onclick="submitPlanting()">Submit planting event</button>
+</div>
 </div>
 
 <script>
@@ -273,6 +341,7 @@ function setNow() {
   document.getElementById('wl-datetime').value = now();
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('veg-date').value = today;
+  document.getElementById('pl-date').value = today;
 }
 
 function switchTab(name, btn) {
@@ -290,7 +359,7 @@ function showAlert(id, msg, type) {
 }
 
 function populateSites() {
-  const selects = ['wq-site', 'veg-site', 'wl-site'];
+  const selects = ['wq-site', 'veg-site', 'wl-site', 'pl-site'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="">Select a site...</option>';
@@ -549,6 +618,57 @@ async function uploadPhoto(siteId, category, datetime, photoInput) {
   } catch(e) {
     console.error('Photo upload failed', e);
   }
+}
+
+async function submitPlanting() {
+  const site = document.getElementById('pl-site').value;
+  const date = document.getElementById('pl-date').value;
+  const species = document.getElementById('pl-species').value.trim();
+  const qty = document.getElementById('pl-qty').value;
+  if (!site || !date || !species || !qty) {
+    showAlert('pl-alert', 'Site, date, species and quantity are required', 'error');
+    return;
+  }
+  const btn = document.getElementById('pl-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  const payload = {
+    site: parseInt(site),
+    planting_date: date,
+    species_name: species,
+    common_name: document.getElementById('pl-common').value || '',
+    quantity_planted: parseInt(qty),
+    planting_method: document.getElementById('pl-method').value || '',
+    funding_source: document.getElementById('pl-funding').value || '',
+    planted_by: document.getElementById('pl-by').value || '',
+    notes: document.getElementById('pl-notes').value || '',
+    status: 'completed'
+  };
+  try {
+    const res = await fetch(`${API}/planting-events/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Token ' + token,
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showAlert('pl-alert', 'Planting event submitted successfully', 'success');
+      ['pl-species','pl-common','pl-qty','pl-by','pl-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pl-method').value = '';
+      document.getElementById('pl-funding').value = '';
+      await uploadPhoto(site, 'planting', date + 'T00:00:00', document.getElementById('pl-photo-input'));
+      removePhoto('pl-photo-input', 'pl-preview');
+    } else {
+      const err = await res.json();
+      showAlert('pl-alert', 'Error: ' + JSON.stringify(err), 'error');
+    }
+  } catch(e) {
+    showAlert('pl-alert', 'Connection error — try again', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Submit planting event';
 }
 </script>
 </body>
