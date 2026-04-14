@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'photos',
     'planting',
     'organisations',
+    'reporting',
 ]
 
 REST_FRAMEWORK = {
