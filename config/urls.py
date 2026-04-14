@@ -31,15 +31,18 @@ from vegetation.views import VegetationSurveyViewSet
 from wildlife.views import WildlifeSightingViewSet
 from photos.views import SitePhotoViewSet
 from planting.views import PlantingEventViewSet, SurvivalCheckViewSet
+from organisations.views import OrganisationViewSet, OrganisationMembershipViewSet
 
 router = DefaultRouter()
-router.register(r'sites', MonitoringSiteViewSet)
+router.register(r'sites', MonitoringSiteViewSet, basename='site')
 router.register(r'water-quality', WaterQualityReadingViewSet)
 router.register(r'vegetation', VegetationSurveyViewSet)
 router.register(r'wildlife', WildlifeSightingViewSet)
 router.register(r'photos', SitePhotoViewSet)
 router.register(r'planting-events', PlantingEventViewSet)
 router.register(r'survival-checks', SurvivalCheckViewSet)
+router.register(r'organisations', OrganisationViewSet, basename='organisation')
+router.register(r'memberships', OrganisationMembershipViewSet, basename='membership')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -11,6 +11,13 @@ class MonitoringSite(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     description = models.TextField(blank=True)
+    organisation = models.ForeignKey(
+        'organisations.Organisation',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='sites',
+        help_text="Which organisation manages this site"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
