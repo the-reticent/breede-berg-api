@@ -1,0 +1,16 @@
+[
+{
+  "model": "vegetation.vegetationsurvey",
+  "pk": 1,
+  "fields": {
+    "site": 3,
+    "surveyed_at": "2026-04-13",
+    "species_name": "Prionium Serratum",
+    "common_name": "Palmiet",
+    "cover_percentage": "20.00",
+    "invasive": false,
+    "notes": "",
+    "created_at": "2026-04-13T09:58:12.090Z"
+  }
+}
+]

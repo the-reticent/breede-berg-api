@@ -1,0 +1,62 @@
+[
+{
+  "model": "water_quality.waterqualityreading",
+  "pk": 1,
+  "fields": {
+    "site": 3,
+    "recorded_at": "2026-03-20T12:53:50Z",
+    "ph": "6.50",
+    "dissolved_oxygen": null,
+    "turbidity": null,
+    "temperature": null,
+    "conductivity": null,
+    "notes": "",
+    "created_at": "2026-03-20T12:54:42.460Z"
+  }
+},
+{
+  "model": "water_quality.waterqualityreading",
+  "pk": 2,
+  "fields": {
+    "site": 1,
+    "recorded_at": "2026-01-15T00:00:00Z",
+    "ph": "7.20",
+    "dissolved_oxygen": "8.50",
+    "turbidity": "12.30",
+    "temperature": "18.40",
+    "conductivity": "245.00",
+    "notes": "Clear conditions",
+    "created_at": "2026-03-24T13:28:07.728Z"
+  }
+},
+{
+  "model": "water_quality.waterqualityreading",
+  "pk": 3,
+  "fields": {
+    "site": 1,
+    "recorded_at": "2026-01-22T00:00:00Z",
+    "ph": "6.90",
+    "dissolved_oxygen": "7.80",
+    "turbidity": "18.70",
+    "temperature": "19.10",
+    "conductivity": "267.00",
+    "notes": "After light rain",
+    "created_at": "2026-03-24T13:28:07.746Z"
+  }
+},
+{
+  "model": "water_quality.waterqualityreading",
+  "pk": 4,
+  "fields": {
+    "site": 3,
+    "recorded_at": "2026-04-13T07:56:00Z",
+    "ph": "9.20",
+    "dissolved_oxygen": "7.40",
+    "turbidity": "15.00",
+    "temperature": "22.00",
+    "conductivity": "250.00",
+    "notes": "A bit windy",
+    "created_at": "2026-04-13T09:57:24.942Z"
+  }
+}
+]
