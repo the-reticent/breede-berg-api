@@ -1,8 +1,8 @@
-# Breede & Berg River Monitoring API
+# Breede & Berg River Monitoring Platform
 
-A production-grade REST API for ecological monitoring data across the Breede and Berg river systems in the Western Cape, South Africa.
+A production-grade environmental data platform for river restoration monitoring across the Breede and Berg river systems in the Western Cape, South Africa.
 
-Built to replace fragmented Excel-based field data collection with a structured, accessible, and well-documented data platform — bringing modern data engineering practices to environmental restoration work.
+Built to replace fragmented Excel-based field data collection with a structured, accessible, and well-documented data platform — bringing modern data engineering practices to ecological restoration work.
 
 ---
 
@@ -12,18 +12,53 @@ Built to replace fragmented Excel-based field data collection with a structured,
 
 Field scientists collecting water quality measurements, vegetation surveys, and wildlife sightings have no shared infrastructure. Data lives on individual computers, in disconnected spreadsheets, inaccessible to researchers and policy makers who need it most.
 
-This API is the bridge.
+The Berg and Breede Riparian Rehabilitation Programme has planted over 2.16 million plants since 2013. There is currently no system that tracks survival rates, water quality improvement, or biodiversity recovery across sites in a structured, queryable way.
+
+This platform is the bridge.
+
+---
+
+## Live Demo
+
+| URL | Description |
+|---|---|
+| `/` | Role-aware dashboard — public, field team, programme views |
+| `/field/` | Mobile field data capture form |
+| `/admin/` | Django admin panel |
+| `/api/docs/` | Interactive Swagger / OpenAPI documentation |
+| `/api/v1/reports/funder-report/` | Programme summary report |
 
 ---
 
 ## What It Does
 
-- Stores and serves **water quality readings** (pH, dissolved oxygen, turbidity, temperature, conductivity)
-- Tracks **vegetation surveys** including species, cover percentage, and invasive status
-- Records **wildlife sightings** with species, count, and observation metadata
-- Links all data to named **monitoring sites** on the Breede and Berg rivers
-- Accepts **Excel file uploads** to ingest existing spreadsheet data automatically
-- Exposes a fully **documented, filterable, paginated REST API**
+### Data collection
+- Mobile field capture form — works on any phone, no app install needed
+- Water quality readings (pH, dissolved oxygen, turbidity, temperature, conductivity)
+- Vegetation surveys with invasive species flagging
+- Wildlife sightings with species identification
+- Planting events with species, quantity, funding source, and planting method
+- Survival checks at 3, 6, 12 and 24 months with auto-calculated survival rates
+- Photo uploads — camera or file picker, attached to any record type
+- Excel importer — upload existing spreadsheets directly into the database
+
+### Data intelligence
+- iNaturalist sync — pulls research-grade citizen science observations within 5km of each monitoring site automatically
+- 609+ biodiversity records synced from iNaturalist across 18 river sites
+- Funder reporting endpoint — complete programme summary in a single API call
+
+### Visualisation
+- Role-aware dashboard — three views based on who is logged in
+  - Public view: headline impact numbers, species map, no login required
+  - Field team view: their sites, recent submissions, survival rates, quick actions, field photos
+  - Programme view: all organisations, partner performance table, water quality trends, planting by funder, invasive vs native vegetation
+
+### Infrastructure
+- Multi-organisation support — per-org data isolation
+- Superorg access (funders and government sees all partners, restoration active organisations see only their own data)
+- Token authentication — each field worker has their own credentials
+- Filtering, search, ordering, and pagination on all endpoints
+- Auto-generated Swagger / OpenAPI 3.0 documentation
 
 ---
 
@@ -38,166 +73,84 @@ This API is the bridge.
 | Filtering | django-filter |
 | API Docs | drf-spectacular (Swagger / OpenAPI 3.0) |
 | Excel ingestion | openpyxl |
+| Image handling | Pillow |
+| iNaturalist | requests (public API, no auth required) |
+| Maps | Leaflet.js |
+| Charts | Chart.js |
+| Deployment | Render (web service + PostgreSQL) |
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Auth required |
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| GET | `/api/v1/sites/` | List all monitoring sites | No |
-| POST | `/api/v1/sites/` | Create a monitoring site | Yes |
-| GET | `/api/v1/water-quality/` | List water quality readings | No |
-| POST | `/api/v1/water-quality/` | Add a reading | Yes |
-| GET | `/api/v1/vegetation/` | List vegetation surveys | No |
-| POST | `/api/v1/vegetation/` | Add a survey | Yes |
-| GET | `/api/v1/wildlife/` | List wildlife sightings | No |
-| POST | `/api/v1/wildlife/` | Add a sighting | Yes |
-| POST | `/api/v1/import/water-quality/` | Upload Excel file to import readings | Yes |
-| POST | `/api/v1/auth/token/` | Obtain authentication token | No |
-| GET | `/api/docs/` | Interactive Swagger documentation | No |
+| GET | `/api/v1/sites/` | Monitoring sites | Public |
+| GET/POST | `/api/v1/water-quality/` | Water quality readings | GET public, POST token |
+| GET/POST | `/api/v1/vegetation/` | Vegetation surveys | GET public, POST token |
+| GET/POST | `/api/v1/wildlife/` | Wildlife sightings | GET public, POST token |
+| GET/POST | `/api/v1/planting-events/` | Planting events | GET public, POST token |
+| GET/POST | `/api/v1/survival-checks/` | Survival rate checks | GET public, POST token |
+| GET/POST | `/api/v1/photos/` | Site photography | GET public, POST token |
+| GET | `/api/v1/organisations/` | Organisations | Token |
+| GET | `/api/v1/reports/funder-report/` | Programme summary | Token |
+| POST | `/api/v1/import/water-quality/` | Excel importer | Token |
+| POST | `/api/v1/auth/token/` | Obtain token | Public |
+| GET | `/api/docs/` | Swagger docs | Public |
 
 ---
 
-## Filtering & Search
+## iNaturalist Sync
 
-All list endpoints support filtering, search, and ordering:
-
-```bash
-# Filter by river
-GET /api/v1/sites/?river=breede
-
-# Search by name
-GET /api/v1/sites/?search=Rawsonville
-
-# Filter readings by site
-GET /api/v1/water-quality/?site=1
-
-# Filter invasive species only
-GET /api/v1/vegetation/?invasive=true
-
-# Order by most recent
-GET /api/v1/water-quality/?ordering=-recorded_at
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- PostgreSQL
-- Git
-
-### Installation
+Pull research-grade observations from within 5km of all monitoring sites:
 
 ```bash
-# Clone the repo
-git clone https://github.com/the-reticent/breede-berg-api.git
-cd breede-berg-api
-
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials
+python manage.py sync_inaturalist
+python manage.py sync_inaturalist --days 365 --limit 100
+python manage.py sync_inaturalist --radius 10 --days 30
 ```
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-```
-SECRET_KEY=your-django-secret-key
-DB_NAME=breede_berg
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_HOST=localhost
-DB_PORT=5432
-```
-
-### Database Setup
-
-```bash
-# Create the database in PostgreSQL
-createdb breede_berg
-
-# Run migrations
-python manage.py migrate
-
-# Create a superuser
-python manage.py createsuperuser
-```
-
-### Run the Development Server
-
-```bash
-python manage.py runserver
-```
-
-Visit `http://localhost:8000/api/docs/` for the interactive Swagger documentation.
 
 ---
 
 ## Excel Import
 
-Upload an `.xlsx` file to populate water quality readings in bulk:
+Upload `.xlsx` files to bulk-import water quality readings:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/import/water-quality/ \
+curl -X POST https://your-domain.com/api/v1/import/water-quality/ \
   -H "Authorization: Token YOUR_TOKEN" \
   -F "file=@your_data.xlsx"
 ```
 
-### Required Excel Columns
-
-| Column | Required | Format |
-|---|---|---|
-| site_name | Yes | Must match an existing site name |
-| recorded_at | Yes | YYYY-MM-DD or YYYY-MM-DD HH:MM:SS |
-| ph | No | Decimal |
-| dissolved_oxygen | No | Decimal (mg/L) |
-| turbidity | No | Decimal (NTU) |
-| temperature | No | Decimal (°C) |
-| conductivity | No | Decimal (µS/cm) |
-| notes | No | Text |
-
-### Import Response
-
-```json
-{
-    "message": "Import complete. 24 readings created.",
-    "created": 24,
-    "errors": [],
-    "error_count": 0
-}
-```
+Required columns: `site_name`, `recorded_at`, `ph`, `dissolved_oxygen`, `turbidity`, `temperature`, `conductivity`, `notes`
 
 ---
 
-## Authentication
+## Multi-Organisation Setup
 
-Obtain a token:
+The platform supports multiple implementing partners with isolated data:
+
+- **Superorg** (funders) — sees all organisations and all sites
+- **Implementing partner** (active conservation orgs) — sees only their own sites and data
+- **Field worker** — submits data via mobile form, sees their organisation's dashboard
+
+---
+
+## Getting Started
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/token/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "your_username", "password": "your_password"}'
+git clone https://github.com/the-reticent/breede-berg-api.git
+cd breede-berg-api
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your database credentials
+python manage.py migrate
+python manage.py loaddata monitoring_sites
+python manage.py createsuperuser
+python manage.py runserver
 ```
-
-Use the token in subsequent requests:
-
-```bash
-curl -H "Authorization: Token YOUR_TOKEN" http://localhost:8000/api/v1/sites/
-```
-
-Read endpoints are public. Write endpoints (POST, PUT, PATCH, DELETE) require a valid token.
 
 ---
 
@@ -205,14 +158,18 @@ Read endpoints are public. Write endpoints (POST, PUT, PATCH, DELETE) require a 
 
 ```
 breede-berg-api/
-├── config/                 # Django settings and URL routing
-├── sites/                  # Monitoring sites app
-├── water_quality/          # Water quality readings + Excel importer
-├── vegetation/             # Vegetation survey app
-├── wildlife/               # Wildlife sightings app
-├── manage.py
-├── requirements.txt
-└── .env.example
+├── config/              # Django settings and URL routing
+├── sites/               # Monitoring sites
+├── water_quality/       # Water quality readings + Excel importer
+├── vegetation/          # Vegetation surveys
+├── wildlife/            # Wildlife sightings + iNaturalist sync
+├── planting/            # Planting events + survival checks
+├── photos/              # Site photography
+├── organisations/       # Multi-org support
+├── reporting/           # Funder reporting endpoint
+├── dashboard/           # Role-aware dashboard
+├── field/               # Mobile field capture form
+└── build.sh             # Render deployment script
 ```
 
 ---
@@ -227,12 +184,22 @@ The skills that optimise network performance transfer directly to biodiversity d
 
 ## Roadmap
 
-- [x] Seed data for real Breede and Berg river monitoring sites
-- [ ] CSV importer for vegetation and wildlife data
-- [ ] Date range filtering across all endpoints
-- [ ] River health summary endpoint (aggregated statistics per site)
-- [ ] Deployment to cloud (Railway / Render)
-- [ ] Frontend dashboard for data visualisation
+- [x] REST API for water quality, vegetation, wildlife
+- [x] 18 real monitoring sites — Breede and Berg rivers
+- [x] Token authentication
+- [x] Excel importer
+- [x] Django admin panel
+- [x] Mobile field capture form with photo uploads
+- [x] Planting events and survival tracking
+- [x] iNaturalist integration — 609+ biodiversity records
+- [x] Role-aware dashboard — public, field team, programme views
+- [x] Multi-organisation support with data isolation
+- [x] Funder reporting endpoint
+- [x] Deployed on Render
+- [ ] Cloudinary integration for persistent photo storage
+- [ ] Scheduled iNaturalist sync (daily/weekly)
+- [ ] CSV export per organisation
+- [ ] Email report delivery to funders
 
 ---
 
@@ -245,6 +212,6 @@ MIT
 ## Author
 
 **Kudakwashe Mike Mapaya**
-Python Developer · Data Engineer
+Python Developer · Data Engineer · Environmental Tech
 
-[LinkedIn](https://linkedin.com/in/kudakwashe-mike-mapaya-654281160) · [Email](mailto:kudamapaya@gmail.com)
+[LinkedIn](https://linkedin.com/in/kudakwashe-mike-mapaya-654281160) · [Email](mailto:kudamapaya@gmail.com) · [GitHub](https://github.com/the-reticent)
