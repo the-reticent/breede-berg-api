@@ -5,10 +5,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from .models import SitePhoto
 from .serializers import SitePhotoSerializer
+from organisations.plans.permissions import PhotoPermission
 
 class SitePhotoViewSet(viewsets.ModelViewSet):
     queryset = SitePhoto.objects.all()
     serializer_class = SitePhotoSerializer
+    permission_classes = [PhotoPermission]
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['site', 'category']

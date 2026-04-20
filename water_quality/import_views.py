@@ -4,9 +4,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser
 from .importers import import_water_quality_excel
+from organisations.plans.permissions import ExcelImportPermission
 
 class WaterQualityImportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ExcelImportPermission]
     parser_classes = [MultiPartParser]
 
     def post(self, request):

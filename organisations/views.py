@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Organisation, OrganisationMembership
 from .serializers import OrganisationSerializer, OrganisationMembershipSerializer
-
+from .plans.permissions import UserLimitPermission
 
 class OrganisationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganisationSerializer
@@ -29,7 +29,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 
 class OrganisationMembershipViewSet(viewsets.ModelViewSet):
     serializer_class = OrganisationMembershipSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, UserLimitPermission]
 
     def get_queryset(self):
         user = self.request.user

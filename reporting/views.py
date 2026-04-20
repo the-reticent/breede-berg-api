@@ -11,6 +11,7 @@ from vegetation.models import VegetationSurvey
 from wildlife.models import WildlifeSighting
 from planting.models import PlantingEvent, SurvivalCheck
 from organisations.models import Organisation, OrganisationMembership
+from organisations.plans.permissions import FunderReportPermission
 
 
 def get_accessible_orgs(user):
@@ -39,7 +40,7 @@ def get_accessible_sites(user):
 
 
 class FunderReportView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, FunderReportPermission]
 
     def get(self, request):
         sites = get_accessible_sites(request.user)
