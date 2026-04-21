@@ -27,6 +27,24 @@ def find_nearest_site(lat, lon, sites, max_km=5):
         return nearest
     return None
 
+def get_taxon_type(taxon):
+    if not taxon:
+        return 'unknown'
+    ancestry = taxon.get('ancestry', '') or ''
+    iconic = taxon.get('iconic_taxon_name', '') or ''
+    name = taxon.get('name', '') or ''
+
+    if iconic in ['Plantae', 'Fungi']:
+        return iconic.lower()
+    if iconic in ['Aves', 'Mammalia', 'Reptilia', 'Amphibia', 'Actinopterygii', 'Insecta', 'Arachnida']:
+        return 'animalia'
+    if 'Plantae' in ancestry:
+        return 'plantae'
+    if 'Animalia' in ancestry:
+        return 'animalia'
+    if 'Fungi' in ancestry:
+        return 'fungi'
+    return 'unknown'
 
 class Command(BaseCommand):
     help = 'Sync wildlife observations from iNaturalist for all monitoring sites'
@@ -38,12 +56,16 @@ class Command(BaseCommand):
             help='Fetch observations from last N days (default: 30)')
         parser.add_argument('--limit', type=int, default=50,
             help='Max observations per site (default: 50)')
+        parser.add_argument('--animals-only', action='store_true', 
+            help='Only sync animal observations')
 
     def handle(self, *args, **options):
         sites = list(MonitoringSite.objects.all())
         radius = options['radius']
         days = options['days']
         limit = options['limit']
+        if options['animals_only']:
+            params['taxon_name'] = 'Animalia'
 
         created_total = 0
         skipped_total = 0
@@ -112,6 +134,7 @@ class Command(BaseCommand):
                     common_name=common_name.title() if common_name else '',
                     count=1,
                     source='inaturalist',
+                    taxon_type=get_taxon_type(taxon),
                     inaturalist_id=inat_id,
                     inaturalist_url=f"https://www.inaturalist.org/observations/{inat_id}",
                     notes=f"Synced from iNaturalist. Observer: {obs.get('user', {}).get('login', 'unknown')}"

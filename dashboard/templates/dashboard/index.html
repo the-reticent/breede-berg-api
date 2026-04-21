@@ -128,6 +128,13 @@
     <span class="topbar-badge" id="role-badge"></span>
   </div>
   <div class="topbar-right">
+    <nav style="display:flex;align-items:center;gap:4px;">
+      <a href="/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">Dashboard</a>
+      <a href="/field/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">Field form</a>
+      <a href="/api/docs/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">API docs</a>
+      <a href="/admin/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'" id="admin-link" style="display:none">Admin</a>
+    </nav>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 8px"></div>
     <span class="topbar-user" id="topbar-user"></span>
     <button class="login-btn" id="login-btn" onclick="showLogin()" style="display:none">Sign in</button>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="display:none">Sign out</button>
@@ -456,8 +463,9 @@ async function fetchAll(url) {
 
 function initMap(id) {
   const m = L.map(id, { zoomControl: true }).setView([-33.5, 19.2], 8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap', maxZoom: 18
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap contributors © CARTO',
+    maxZoom: 19
   }).addTo(m);
   return m;
 }

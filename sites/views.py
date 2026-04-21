@@ -14,7 +14,7 @@ class MonitoringSiteViewSet(viewsets.ModelViewSet):
     filterset_fields = ['river', 'organisation']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
-    
+
     def get_queryset(self):
         user = self.request.user
         if not user.is_authenticated:
@@ -28,3 +28,14 @@ class MonitoringSiteViewSet(viewsets.ModelViewSet):
             return MonitoringSite.objects.filter(organisation=membership.organisation)
         except OrganisationMembership.DoesNotExist:
             return MonitoringSite.objects.all()
+        
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_superuser:
+            try:
+                org = user.membership.organisation
+                serializer.save(organisation=org)
+                return
+            except OrganisationMembership.DoesNotExist:
+                pass
+        serializer.save()

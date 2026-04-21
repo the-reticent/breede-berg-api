@@ -29,7 +29,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 
 class OrganisationMembershipViewSet(viewsets.ModelViewSet):
     serializer_class = OrganisationMembershipSerializer
-    permission_classes = [IsAdminUser, UserLimitPermission]
+    permission_classes = [IsAuthenticated, UserLimitPermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -41,3 +41,8 @@ class OrganisationMembershipViewSet(viewsets.ModelViewSet):
             )
         except OrganisationMembership.DoesNotExist:
             return OrganisationMembership.objects.none()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [IsAdminUser(), UserLimitPermission()]

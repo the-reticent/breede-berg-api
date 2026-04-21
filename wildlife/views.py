@@ -10,6 +10,6 @@ class WildlifeSightingViewSet(viewsets.ModelViewSet):
     serializer_class = WildlifeSightingSerializer
     permission_classes = [WildlifePermission]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['site', 'observed_at']
+    filterset_fields = ['site', 'observed_at', 'source', 'taxon_type']
     search_fields = ['species_name', 'common_name', 'notes']
     ordering_fields = ['observed_at', 'count']
