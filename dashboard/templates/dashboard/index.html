@@ -11,18 +11,48 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: #1a1a2e; min-height: 100vh; }
 
-  .topbar { background: #1a7a6e; color: #fff; padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
-  .topbar-left { display: flex; align-items: center; gap: 16px; }
-  .topbar-title { font-size: 17px; font-weight: 500; }
-  .topbar-badge { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 500; }
-  .badge-field { background: rgba(255,255,255,0.2); color: #fff; }
-  .badge-programme { background: #FAC775; color: #633806; }
-  .badge-public { background: rgba(255,255,255,0.15); color: #fff; }
-  .topbar-right { display: flex; align-items: center; gap: 12px; }
-  .topbar-user { font-size: 13px; opacity: 0.85; }
-  .login-btn { padding: 6px 14px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.6); background: transparent; color: #fff; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+  .topbar {
+    background: #1a7a6e; color: #fff;
+    padding: 0 1.5rem; min-height: 56px;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .topbar-title { font-size: 16px; font-weight: 500; white-space: nowrap; }
+  .topbar-right {
+    display: flex; align-items: center;
+    gap: 4px; flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .nav-link {
+    padding: 5px 10px; color: rgba(255,255,255,0.85);
+    font-size: 12px; text-decoration: none;
+    border-radius: 6px; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .topbar-divider { width: 1px; height: 18px; background: rgba(255,255,255,0.25); margin: 0 4px; flex-shrink: 0; }
+  .topbar-user { font-size: 12px; opacity: 0.85; white-space: nowrap; }
+  .login-btn {
+    padding: 5px 12px; border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    background: transparent; color: #fff;
+    font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
   .login-btn:hover { background: rgba(255,255,255,0.15); }
-  .logout-btn { padding: 6px 14px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.4); background: transparent; color: rgba(255,255,255,0.8); font-size: 13px; cursor: pointer; }
+  .logout-btn {
+    padding: 5px 12px; border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    background: transparent; color: rgba(255,255,255,0.8);
+    font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 10px 1rem; }
+    .nav-link { padding: 5px 8px; font-size: 11px; }
+    .topbar-badge { display: none; }
+  }
 
   .page { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
 
@@ -113,6 +143,17 @@
   .empty { text-align: center; padding: 2rem; color: #bbb; font-size: 13px; }
   .loading { text-align: center; padding: 1rem; color: #bbb; font-size: 13px; }
 
+  .nav-link {
+  padding: 6px 11px;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  text-decoration: none;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.nav-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
   @media (max-width: 900px) {
     .stat-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0,1fr); }
@@ -128,13 +169,11 @@
     <span class="topbar-badge" id="role-badge"></span>
   </div>
   <div class="topbar-right">
-    <nav style="display:flex;align-items:center;gap:4px;">
-      <a href="/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">Dashboard</a>
-      <a href="/field/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">Field form</a>
-      <a href="/api/docs/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">API docs</a>
-      <a href="/admin/" style="padding:6px 12px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:none;border-radius:6px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'" id="admin-link" style="display:none">Admin</a>
-    </nav>
-    <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 8px"></div>
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/field/" class="nav-link">Field form</a>
+    <a href="/api/docs/" class="nav-link">API docs</a>
+    <a href="/admin/" class="nav-link">Admin</a>
+    <div class="topbar-divider"></div>
     <span class="topbar-user" id="topbar-user"></span>
     <button class="login-btn" id="login-btn" onclick="showLogin()" style="display:none">Sign in</button>
     <button class="logout-btn" id="logout-btn" onclick="doLogout()" style="display:none">Sign out</button>
@@ -175,10 +214,19 @@
     </div>
     <div class="stat-grid">
       <div class="stat-card stat-teal">
-        <div class="stat-label">River sites monitored</div>
-        <div class="stat-value" id="pub-sites">—</div>
-        <div class="stat-sub">Breede &amp; Berg rivers</div>
+      <div class="stat-label">River sites monitored</div>
+      <div class="stat-value" id="pub-sites">—</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#1a7a6e;flex-shrink:0"></div>
+          <span style="font-size:11px;color:#888">Breede</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#185fa5;flex-shrink:0"></div>
+          <span style="font-size:11px;color:#888">Berg</span>
+        </div>
       </div>
+    </div>
       <div class="stat-card stat-green">
         <div class="stat-label">Wildlife species recorded</div>
         <div class="stat-value" id="pub-species">—</div>
@@ -195,14 +243,19 @@
         <div class="stat-sub">river health measurements</div>
       </div>
     </div>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Monitoring sites</div>
+      <div id="map-public"></div>
+    </div>
+
     <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Monitoring sites</div>
-        <div id="map-public"></div>
-      </div>
       <div class="card">
         <div class="card-title">Most observed species</div>
         <div id="pub-species-list"><div class="loading">Loading...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Field photos <span class="card-badge badge-teal" id="pub-photo-count"></span></div>
+        <div class="photo-grid" id="pub-photos"><div class="loading" style="grid-column:span 3">Loading...</div></div>
       </div>
     </div>
     <div style="text-align:center;padding:1rem 0 2rem">
@@ -468,6 +521,24 @@ function initMap(id) {
     maxZoom: 19
   }).addTo(m);
   return m;
+
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function() {
+    const div = L.DomUtil.create('div');
+    div.style.cssText = 'background:#fff;padding:8px 12px;border-radius:8px;border:0.5px solid #e0e0e0;font-size:12px;font-family:sans-serif;line-height:1.8';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#1a7a6e;flex-shrink:0"></div>
+        <span style="color:#444">Breede River</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#185fa5;flex-shrink:0"></div>
+        <span style="color:#444">Berg River</span>
+      </div>`;
+    return div;
+  };
+  legend.addTo(m);
+  return m;
 }
 
 function addSiteMarkers(map, sites) {
@@ -596,10 +667,11 @@ async function initDashboard() {
 }
 
 async function loadPublicView() {
-  const [sites, wildlife, wqReadings] = await Promise.all([
+  const [sites, wildlife, wqReadings, photos] = await Promise.all([
     fetchAll(`${API}/sites/`),
     fetchAll(`${API}/wildlife/?ordering=-observed_at`),
-    fetchAll(`${API}/water-quality/`)
+    fetchAll(`${API}/water-quality/`),
+    fetchAll(`${API}/photos/?ordering=-created_at`)
   ]);
 
   document.getElementById('pub-sites').textContent = sites.length;
@@ -625,6 +697,12 @@ async function loadPublicView() {
       <div class="bar-track"><div class="bar-fill bar-teal" style="width:${Math.round(count/max*100)}%"></div></div>
     </div>
   `).join('') || '<div class="empty">No sightings recorded yet</div>';
+
+  const pubPhotos = photos.slice(0, 6);
+  document.getElementById('pub-photo-count').textContent = photos.length + ' photos';
+  document.getElementById('pub-photos').innerHTML = pubPhotos.length
+    ? pubPhotos.map(p => `<img class="photo-thumb" src="${p.image}" alt="${p.caption || 'Site photo'}" onerror="this.style.display='none'"/>`).join('')
+    : '<div class="empty" style="grid-column:span 3">No photos uploaded yet</div>';
 }
 
 async function loadFieldView() {

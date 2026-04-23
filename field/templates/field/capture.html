@@ -8,9 +8,23 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f3; min-height: 100vh; }
 
-  .topbar { background: #1a7a6e; color: #fff; padding: 14px 20px; }
-  .topbar-title { font-size: 17px; font-weight: 500; }
-  .topbar-sub { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+  .topbar {
+    background: #1a7a6e; color: #fff;
+    padding: 0 1.25rem; height: 56px;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .topbar-info { display: flex; flex-direction: column; min-width: 0; }
+  .topbar-title { font-size: 16px; font-weight: 500; white-space: nowrap; }
+  .topbar-sub { font-size: 11px; opacity: 0.75; white-space: nowrap; }
+  .topbar-links { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .topbar-link {
+    padding: 5px 12px; color: rgba(255,255,255,0.85); font-size: 12px;
+    text-decoration: none; border: 1.5px solid rgba(255,255,255,0.45);
+    border-radius: 6px; white-space: nowrap; transition: background 0.15s;
+  }
+  .topbar-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
 
   .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0e0e0; }
   .tab {
@@ -83,16 +97,54 @@
 .photo-preview { display: none; margin-bottom: 14px; }
 .photo-preview img { width: 100%; border-radius: 8px; border: 0.5px solid #e0e0e0; }
 .photo-preview-remove { font-size: 12px; color: #d85a30; cursor: pointer; margin-top: 6px; display: block; text-align: center; }
+
+.site-select-wrap { display: flex; gap: 8px; align-items: flex-start; }
+.site-select-wrap select { flex: 1; }
+.add-site-btn {
+  width: 38px; height: 38px; border-radius: 8px; border: 0.5px solid #1a7a6e;
+  background: #e1f5ee; color: #1a7a6e; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  line-height: 1;
+}
+.add-site-btn:hover { background: #1a7a6e; color: #fff; }
+.site-search { width: 100%; padding: 9px 12px; border: 0.5px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 6px; }
+.site-search:focus { outline: none; border-color: #1a7a6e; }
+
+.new-site-form { background: #f8fffd; border: 0.5px solid #c0e8d8; border-radius: 10px; padding: 14px; margin-bottom: 14px; display: none; }
+.new-site-form.open { display: block; }
+.new-site-title { font-size: 13px; font-weight: 500; color: #0f6e56; margin-bottom: 12px; }
+
+.species-wrap { position: relative; }
+.species-suggestions {
+  position: absolute; top: 100%; left: 0; right: 0; background: #fff;
+  border: 0.5px solid #ddd; border-top: none; border-radius: 0 0 8px 8px;
+  max-height: 220px; overflow-y: auto; z-index: 100; display: none;
+}
+.species-suggestion {
+  padding: 10px 12px; cursor: pointer; border-bottom: 0.5px solid #f5f5f5; font-size: 13px;
+}
+.species-suggestion:last-child { border-bottom: none; }
+.species-suggestion:hover { background: #f0fbf7; }
+.species-sci { font-style: italic; color: #1a1a2e; font-weight: 500; }
+.species-common { color: #888; font-size: 12px; margin-top: 1px; }
+.species-group { font-size: 10px; color: #1a7a6e; background: #e1f5ee; padding: 1px 6px; border-radius: 8px; float: right; }
+
+.alert-success { background: #e1f5ee; color: #0f6e56; }
+.alert-error { background: #faece7; color: #993c1d; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div>
+  <div class="topbar-info">
     <div class="topbar-title">Field data capture</div>
     <div class="topbar-sub">Breede &amp; Berg River Monitoring</div>
   </div>
-  <a href="/" style="padding:6px 14px;color:#fff;font-size:13px;text-decoration:none;border:1.5px solid rgba(255,255,255,0.5);border-radius:6px;">Dashboard</a>
+  <div class="topbar-links">
+    <a href="/" class="topbar-link">Dashboard</a>
+    <a href="/api/docs/" class="topbar-link">API docs</a>
+    <a href="/admin/" class="topbar-link">Admin</a>
+  </div>
 </div>
 
 <div id="login-screen" class="login-screen">
@@ -123,9 +175,43 @@
   <div id="tab-water" class="form-section active">
     <div id="wq-alert" class="alert"></div>
     <div class="field-group">
-      <label class="field-label">Monitoring site</label>
-      <select id="wq-site" class="field-input"><option value="">Loading sites...</option></select>
+    <label class="field-label">Monitoring site</label>
+    <input type="text" id="wq-site-search" class="site-search" placeholder="Search sites..." oninput="filterSites('wq-site', this.value)"/>
+    <div class="site-select-wrap">
+      <select id="wq-site" class="field-input" size="1"><option value="">Select a site...</option></select>
+      <button type="button" class="add-site-btn" onclick="openNewSiteModal('wq')" title="Add new site">+</button>
     </div>
+  </div>
+
+  <!--<div class="new-site-form" id="wq-new-site">
+    <div class="new-site-title">Add a new monitoring site</div>
+    <div class="field-group">
+      <label class="field-label">Site name</label>
+      <input type="text" id="wq-ns-name" class="field-input" placeholder="e.g. Wolseley North Bank"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field-group">
+        <label class="field-label">River</label>
+        <select id="wq-ns-river" class="field-input">
+          <option value="breede">Breede River</option>
+          <option value="berg">Berg River</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">GPS (auto)</label>
+        <input type="text" id="wq-ns-gps" class="field-input" placeholder="-33.4167, 19.2167" readonly/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <input type="text" id="wq-ns-desc" class="field-input" placeholder="Brief description of this site"/>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="submit-btn" style="flex:1" onclick="submitNewSite('wq')">Save site</button>
+      <button type="button" onclick="toggleNewSiteForm('wq-new-site')" style="flex:1;padding:12px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>
+    </div>
+    <div id="wq-ns-alert" class="alert" style="margin-top:10px;display:none;"></div>
+  </div>-->
     <div class="field-group">
       <label class="field-label">Date &amp; time</label>
       <input type="datetime-local" id="wq-datetime" class="field-input"/>
@@ -177,21 +263,58 @@
   <div id="tab-vegetation" class="form-section">
     <div id="veg-alert" class="alert"></div>
     <div class="field-group">
-      <label class="field-label">Monitoring site</label>
-      <select id="veg-site" class="field-input"><option value="">Loading sites...</option></select>
+    <label class="field-label">Monitoring site</label>
+    <input type="text" id="veg-site-search" class="site-search" placeholder="Search sites..." oninput="filterSites('veg-site', this.value)"/>
+    <div class="site-select-wrap">
+      <select id="veg-site" class="field-input" size="1"><option value="">Select a site...</option></select>
+      <button type="button" class="add-site-btn" onclick="openNewSiteModal('veg')" title="Add new site">+</button>
     </div>
+  </div>
+
+  <!--<div class="new-site-form" id="veg-new-site">
+    <div class="new-site-title">Add a new monitoring site</div>
+    <div class="field-group">
+      <label class="field-label">Site name</label>
+      <input type="text" id="veg-ns-name" class="field-input" placeholder="e.g. Wolseley North Bank"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field-group">
+        <label class="field-label">River</label>
+        <select id="veg-ns-river" class="field-input">
+          <option value="breede">Breede River</option>
+          <option value="berg">Berg River</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">GPS (auto)</label>
+        <input type="text" id="veg-ns-gps" class="field-input" placeholder="-33.4167, 19.2167" readonly/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <input type="text" id="veg-ns-desc" class="field-input" placeholder="Brief description of this site"/>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="submit-btn" style="flex:1" onclick="submitNewSite('veg')">Save site</button>
+      <button type="button" onclick="toggleNewSiteForm('veg-new-site')" style="flex:1;padding:12px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>
+    </div>
+    <div id="veg-ns-alert" class="alert" style="margin-top:10px;display:none;"></div>
+  </div>-->
     <div class="field-group">
       <label class="field-label">Survey date</label>
       <input type="date" id="veg-date" class="field-input"/>
     </div>
     <div class="field-group">
-      <label class="field-label">Species name (scientific)</label>
-      <input type="text" id="veg-species" class="field-input" placeholder="e.g. Prionium serratum"/>
+    <label class="field-label">Species name</label>
+    <div class="species-wrap">
+      <input type="text" id="veg-species" class="field-input" placeholder="Start typing a species name..." autocomplete="off" oninput="searchSpecies(this, 'veg-suggestions', 'veg-common', 'Plantae')"/>
+      <div class="species-suggestions" id="veg-suggestions"></div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Common name</label>
-      <input type="text" id="veg-common" class="field-input" placeholder="e.g. Palmiet"/>
-    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Common name</label>
+    <input type="text" id="veg-common" class="field-input" placeholder="Auto-filled from species search"/>
+  </div>
     <div class="field-group">
       <label class="field-label">Cover percentage (%)</label>
       <input type="number" step="0.1" min="0" max="100" id="veg-cover" class="field-input" placeholder="e.g. 35"/>
@@ -224,21 +347,58 @@
   <div id="tab-wildlife" class="form-section">
     <div id="wl-alert" class="alert"></div>
     <div class="field-group">
-      <label class="field-label">Monitoring site</label>
-      <select id="wl-site" class="field-input"><option value="">Loading sites...</option></select>
+    <label class="field-label">Monitoring site</label>
+    <input type="text" id="wl-site-search" class="site-search" placeholder="Search sites..." oninput="filterSites('wl-site', this.value)"/>
+    <div class="site-select-wrap">
+      <select id="wl-site" class="field-input" size="1"><option value="">Select a site...</option></select>
+      <button type="button" class="add-site-btn" onclick="openNewSiteModal('wl')" title="Add new site">+</button>
     </div>
+  </div>
+
+  <!--<div class="new-site-form" id="wl-new-site">
+    <div class="new-site-title">Add a new monitoring site</div>
+    <div class="field-group">
+      <label class="field-label">Site name</label>
+      <input type="text" id="wl-ns-name" class="field-input" placeholder="e.g. Wolseley North Bank"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field-group">
+        <label class="field-label">River</label>
+        <select id="wl-ns-river" class="field-input">
+          <option value="breede">Breede River</option>
+          <option value="berg">Berg River</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">GPS (auto)</label>
+        <input type="text" id="wl-ns-gps" class="field-input" placeholder="-33.4167, 19.2167" readonly/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <input type="text" id="wl-ns-desc" class="field-input" placeholder="Brief description of this site"/>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="submit-btn" style="flex:1" onclick="submitNewSite('wl')">Save site</button>
+      <button type="button" onclick="toggleNewSiteForm('wl-new-site')" style="flex:1;padding:12px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>
+    </div>
+    <div id="wl-ns-alert" class="alert" style="margin-top:10px;display:none;"></div>
+  </div>-->
     <div class="field-group">
       <label class="field-label">Date &amp; time observed</label>
       <input type="datetime-local" id="wl-datetime" class="field-input"/>
     </div>
     <div class="field-group">
-      <label class="field-label">Species name (scientific)</label>
-      <input type="text" id="wl-species" class="field-input" placeholder="e.g. Ardea cinerea"/>
+    <label class="field-label">Species name</label>
+    <div class="species-wrap">
+      <input type="text" id="wl-species" class="field-input" placeholder="Start typing a species name..." autocomplete="off" oninput="searchSpecies(this, 'wl-suggestions', 'wl-common', 'Animalia')"/>
+      <div class="species-suggestions" id="wl-suggestions"></div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Common name</label>
-      <input type="text" id="wl-common" class="field-input" placeholder="e.g. Grey Heron"/>
-    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Common name</label>
+    <input type="text" id="wl-common" class="field-input" placeholder="Auto-filled from species search"/>
+  </div>
     <div class="field-group">
       <label class="field-label">Count</label>
       <input type="number" min="1" id="wl-count" class="field-input" value="1"/>
@@ -264,20 +424,57 @@
   <div id="tab-planting" class="form-section">
   <div id="pl-alert" class="alert"></div>
   <div class="field-group">
-    <label class="field-label">Monitoring site</label>
-    <select id="pl-site" class="field-input"><option value="">Select a site...</option></select>
+  <label class="field-label">Monitoring site</label>
+  <input type="text" id="pl-site-search" class="site-search" placeholder="Search sites..." oninput="filterSites('pl-site', this.value)"/>
+  <div class="site-select-wrap">
+    <select id="pl-site" class="field-input" size="1"><option value="">Select a site...</option></select>
+    <button type="button" class="add-site-btn" onclick="openNewSiteModal('pl')" title="Add new site">+</button>
   </div>
+</div>
+
+<!--<div class="new-site-form" id="pl-new-site">
+  <div class="new-site-title">Add a new monitoring site</div>
+  <div class="field-group">
+    <label class="field-label">Site name</label>
+    <input type="text" id="pl-ns-name" class="field-input" placeholder="e.g. Wolseley North Bank"/>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="field-group">
+      <label class="field-label">River</label>
+      <select id="pl-ns-river" class="field-input">
+        <option value="breede">Breede River</option>
+        <option value="berg">Berg River</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">GPS (auto)</label>
+      <input type="text" id="pl-ns-gps" class="field-input" placeholder="-33.4167, 19.2167" readonly/>
+    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Description</label>
+    <input type="text" id="pl-ns-desc" class="field-input" placeholder="Brief description of this site"/>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button type="button" class="submit-btn" style="flex:1" onclick="submitNewSite('pl')">Save site</button>
+    <button type="button" onclick="toggleNewSiteForm('pl-new-site')" style="flex:1;padding:12px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>
+  </div>
+  <div id="pl-ns-alert" class="alert" style="margin-top:10px;display:none;"></div>
+</div>-->
   <div class="field-group">
     <label class="field-label">Planting date</label>
     <input type="date" id="pl-date" class="field-input"/>
   </div>
   <div class="field-group">
     <label class="field-label">Species name (scientific)</label>
-    <input type="text" id="pl-species" class="field-input" placeholder="e.g. Podocarpus elongatus"/>
+    <div class="species-wrap">
+      <input type="text" id="pl-species" class="field-input" placeholder="Start typing a species name..." autocomplete="off" oninput="searchSpecies(this, 'pl-suggestions', 'pl-common', 'Plantae')"/>
+      <div class="species-suggestions" id="pl-suggestions"></div>
+    </div>
   </div>
   <div class="field-group">
     <label class="field-label">Common name</label>
-    <input type="text" id="pl-common" class="field-input" placeholder="e.g. Breede River Yellowwood"/>
+    <input type="text" id="pl-common" class="field-input" placeholder="Auto-filled from species search"/>
   </div>
   <div class="grid-2">
     <div class="field-group">
@@ -329,6 +526,38 @@
 </div>
 </div>
 
+<div id="site-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:24px;width:90%;max-width:380px;position:relative;">
+    <div style="font-size:17px;font-weight:500;color:#1a1a2e;margin-bottom:4px;">Add monitoring site</div>
+    <div style="font-size:13px;color:#888;margin-bottom:18px;" id="site-modal-plan-info"></div>
+    <div id="site-modal-alert" class="alert" style="display:none;margin-bottom:12px;"></div>
+    <div class="field-group">
+      <label class="field-label">Site name</label>
+      <input type="text" id="modal-site-name" class="field-input" placeholder="e.g. Wolseley North Bank"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field-group">
+        <label class="field-label">River</label>
+        <select id="modal-site-river" class="field-input">
+          <option value="breede">Breede River</option>
+          <option value="berg">Berg River</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Coordinates</label>
+        <input type="text" id="modal-site-gps" class="field-input" placeholder="Detecting..." readonly/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <input type="text" id="modal-site-desc" class="field-input" placeholder="Brief description"/>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button type="button" onclick="submitModalSite()" style="flex:1;padding:12px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;">Save site</button>
+      <button type="button" onclick="closeModal()" style="flex:1;padding:12px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
 <script>
 const API = '/api/v1';
 let token = localStorage.getItem('field_token') || '';
@@ -415,7 +644,38 @@ function getCookie(name) {
   return cookieValue;
 }
 
+async function loadOrgName() {
+  try {
+    const res = await fetch(`${API}/memberships/`, {
+      headers: { 'Authorization': 'Token ' + token, 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const membs = data.results || data;
+      if (membs.length > 0) {
+        const orgsRes = await fetch(`${API}/organisations/`, {
+          headers: { 'Authorization': 'Token ' + token },
+          credentials: 'same-origin'
+        });
+        const orgsData = await orgsRes.json();
+        const orgs = orgsData.results || orgsData;
+        const myOrg = orgs.find(o => o.id === membs[0].organisation);
+        if (myOrg) {
+          currentOrgName = myOrg.name;
+          const plBy = document.getElementById('pl-by');
+          if (plBy) plBy.value = currentOrgName;
+          plBy.setAttribute('readonly', true);
+          plBy.style.background = '#f8f9fa';
+          plBy.style.color = '#888';
+        }
+      }
+    }
+  } catch(e) {}
+}
+
 async function doLogin() {
+  let currentOrgName = '';
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
   if (!username || !password) {
@@ -578,6 +838,7 @@ if (token) {
   loadSites();
   setNow();
   detectGPS();
+  loadOrgName();
 }
 
 function previewPhoto(input, previewId) {
@@ -642,7 +903,7 @@ async function submitPlanting() {
     quantity_planted: parseInt(qty),
     planting_method: document.getElementById('pl-method').value || '',
     funding_source: document.getElementById('pl-funding').value || '',
-    planted_by: document.getElementById('pl-by').value || '',
+    planted_by: currentOrgName || document.getElementById('pl-by').value || '',
     notes: document.getElementById('pl-notes').value || '',
     status: 'completed'
   };
@@ -673,6 +934,151 @@ async function submitPlanting() {
   }
   btn.disabled = false; btn.textContent = 'Submit planting event';
 }
+
+function filterSites(selectId, query) {
+  const sel = document.getElementById(selectId);
+  const q = query.toLowerCase();
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    opt.style.display = opt.text.toLowerCase().includes(q) ? '' : 'none';
+  });
+  const visible = Array.from(sel.options).filter(o => o.value && o.style.display !== 'none');
+  if (visible.length === 1) sel.value = visible[0].value;
+}
+
+let modalTargetPrefix = '';
+
+function openNewSiteModal(prefix) {
+  modalTargetPrefix = prefix;
+  document.getElementById('modal-site-name').value = '';
+  document.getElementById('modal-site-desc').value = '';
+  document.getElementById('modal-site-gps').value = 'Detecting GPS...';
+  document.getElementById('site-modal-alert').style.display = 'none';
+  document.getElementById('site-modal-bg').style.display = 'flex';
+
+  navigator.geolocation?.getCurrentPosition(
+    pos => {
+      document.getElementById('modal-site-gps').value =
+        pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6);
+    },
+    () => { document.getElementById('modal-site-gps').value = ''; document.getElementById('modal-site-gps').removeAttribute('readonly'); document.getElementById('modal-site-gps').placeholder = '-33.4167, 19.2167'; }
+  );
+}
+
+function closeModal() {
+  document.getElementById('site-modal-bg').style.display = 'none';
+}
+
+document.getElementById('site-modal-bg').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+async function submitModalSite() {
+  const name = document.getElementById('modal-site-name').value.trim();
+  const river = document.getElementById('modal-site-river').value;
+  const gps = document.getElementById('modal-site-gps').value;
+  const desc = document.getElementById('modal-site-desc').value.trim();
+  const alertEl = document.getElementById('site-modal-alert');
+
+  if (!name || !river) {
+    alertEl.textContent = 'Site name and river are required';
+    alertEl.className = 'alert alert-error';
+    alertEl.style.display = 'block';
+    return;
+  }
+
+  let lat = '', lon = '';
+  if (gps && gps.includes(',') && !gps.includes('Detecting')) {
+    [lat, lon] = gps.split(',').map(s => s.trim());
+  } else {
+    alertEl.textContent = 'Please wait for GPS or enter coordinates manually';
+    alertEl.className = 'alert alert-error';
+    alertEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/sites/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Token ' + token, 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin',
+      body: JSON.stringify({ name, river, latitude: lat, longitude: lon, description: desc })
+    });
+
+    if (res.ok) {
+      const newSite = await res.json();
+      sites.push(newSite);
+      populateSites();
+      document.getElementById(modalTargetPrefix + '-site').value = newSite.id;
+      alertEl.textContent = `"${newSite.name}" added successfully`;
+      alertEl.className = 'alert alert-success';
+      alertEl.style.display = 'block';
+      setTimeout(closeModal, 1200);
+    } else {
+      const err = await res.json();
+      alertEl.textContent = err.detail || JSON.stringify(err);
+      alertEl.className = 'alert alert-error';
+      alertEl.style.display = 'block';
+    }
+  } catch(e) {
+    alertEl.textContent = 'Connection error — try again';
+    alertEl.className = 'alert alert-error';
+    alertEl.style.display = 'block';
+  }
+}
+
+let speciesDebounce = null;
+
+async function searchSpecies(input, suggestionsId, commonFieldId, taxon) {
+  const q = input.value.trim();
+  const box = document.getElementById(suggestionsId);
+
+  if (q.length < 3) { box.style.display = 'none'; return; }
+
+  clearTimeout(speciesDebounce);
+  speciesDebounce = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({
+        q,
+        per_page: 8,
+        rank: 'species',
+        locale: 'en',
+        preferred_place_id: 113055
+      });
+      if (taxon) params.append('taxon_name', taxon);
+
+      const res = await fetch(`https://api.inaturalist.org/v1/taxa?${params}`);
+      const data = await res.json();
+
+      if (!data.results?.length) { box.style.display = 'none'; return; }
+
+      box.innerHTML = data.results.map(t => {
+        const sci = t.name || '';
+        const common = t.preferred_common_name || '';
+        const group = t.iconic_taxon_name || '';
+        return `<div class="species-suggestion" onclick="selectSpecies('${sci.replace(/'/g, "\\'")}', '${common.replace(/'/g, "\\'")}', '${input.id}', '${commonFieldId}', '${suggestionsId}')">
+          <div class="species-sci">${sci} <span class="species-group">${group}</span></div>
+          ${common ? `<div class="species-common">${common}</div>` : ''}
+        </div>`;
+      }).join('');
+      box.style.display = 'block';
+    } catch(e) {
+      box.style.display = 'none';
+    }
+  }, 350);
+}
+
+function selectSpecies(sci, common, inputId, commonFieldId, suggestionsId) {
+  document.getElementById(inputId).value = sci;
+  document.getElementById(commonFieldId).value = common;
+  document.getElementById(suggestionsId).style.display = 'none';
+}
+
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.species-suggestions').forEach(box => {
+    if (!box.parentElement.contains(e.target)) box.style.display = 'none';
+  });
+});
 </script>
 </body>
 </html>
